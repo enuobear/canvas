@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>使用canvas绘图时钟</title>
+</head>
+<body>
+<canvas id="drawing" width="200" height="200">A drawing of something.</canvas>
+<div id="log"></div>
+<script>
+    var logText = document.getElementById('log');
+    var time = new Date();
+    var newTime = {
+        h : time.getHours(),
+        m : time.getMinutes(),
+        s : time.getSeconds()
+    };
+    var drawing = document.getElementById('drawing');
+
+    //确定浏览器支持<canvas>元素
+    if (drawing.getContext) {
+        var context = drawing.getContext('2d');
+        var clock = {
+
+            contextWidth : drawing.width,
+            contextHeight : drawing.height,
+
+            init : function() {
+                var self = this;
+
+                self._draw();
+            },
+
+            _draw : function() {
+
+                var self = this;
+
+                context.clearRect(0, 0, this.contextWidth, this.contextHeight);
+                context.beginPath();
+                context.lineWidth = 2;
+                context.arc(100, 100, 99, 0, 2 * Math.PI, false);
+
+                context.moveTo(194, 100);
+                context.arc(100, 100, 94, 0, 2 * Math.PI, false);
+                context.stroke();
+                context.closePath();
+                context.save();
+
+                context.translate(100, 100);
+                context.font = 'bold 14px Arial';
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+
+                for(var i = 1; i < 13; i++) {
+                    context.rotate(2 * Math.PI/12);
+                    context.fillText(i + "", 0, -84);
+                }
+
+                newTime.s++;//时间判断步进
+                if(newTime.s > 59) {
+                    newTime.s = 0;
+                    newTime.m++;
+                    if(newTime.m > 59) {
+                        newTime.m = 0;
+                        newTime.h++;
+                        if(newTime.h > 24) {
+                            newTime.h = 0;
+                        }
+                    }
+                }
+
+                self._showTime(context, newTime.h, newTime.m, newTime.s);
+
+
+                context.beginPath();
+                context.arc(100, 100, 3, 0, 2 * Math.PI, false);
+                context.fill();
+                context.closePath();
+
+                setTimeout(function() {//循环时间
+
+                    self._draw();
+
+                },1000);
+
+            },
+
+            _showTime : function(ct, h, m, s) {
+                var H = h > 12 ? h - 12 : h;
+                for(var j = 0; j < 3; j++) {
+                    ct.save();
+                    ct.beginPath();
+                    ct.moveTo(0, 0);
+                    switch(j) {
+                        case 0:
+                            ct.lineWidth = 3;
+                            ct.strokeStyle = '#444';
+                            ct.rotate(2 * Math.PI/12 * H);
+                            ct.lineTo(0, -40);
+                            break;
+                        case 1:
+                            ct.lineWidth = 2;
+                            ct.strokeStyle = '#666';
+                            ct.rotate(2 * Math.PI/60 * m);
+                            ct.lineTo(0, -55);
+                            break;
+                        case 2:
+                            ct.lineWidth = 1;
+                            ct.strokeStyle = '#777';
+                            ct.rotate(2 * Math.PI/60 * s);
+                            ct.lineTo(0, -70);
+                            break;
+                    }
+
+                    ct.stroke();
+                    ct.closePath();
+                    ct.restore();
+                }
+
+                ct.restore();
+
+                /*显示数字时间*/
+                logText.innerText = h + ":" + m + ":" + s;
+            }
+
+        }
+    }
+
+    clock.init();
+
+</script>
+</body>
+</html>
